@@ -3,14 +3,13 @@
 export const NODE_CONFIG = {
   trigger: {
     label: 'Trigger',
-    description: 'Starts the workflow.',
+    description: 'Starts manually from the Run button.',
     color: '#7c3aed',
     hasInput: false,
     outputs: ['default'],
-    defaultData: { triggerType: 'manual', eventName: '' },
+    defaultData: { triggerType: 'manual' },
     fields: [
-      { key: 'triggerType', label: 'Trigger type', type: 'select', options: ['manual', 'event', 'schedule'] },
-      { key: 'eventName', label: 'Event name', type: 'text', placeholder: 'e.g. record_created, order_paid' },
+      { key: 'triggerType', label: 'Trigger type', type: 'select', options: ['manual'] },
     ],
   },
   delay: {
@@ -85,7 +84,7 @@ export const NODE_TYPE_LIST = Object.keys(NODE_CONFIG);
 export function summarizeNode(type, data) {
   switch (type) {
     case 'trigger':
-      return data.eventName || data.triggerType || 'Choose a trigger';
+      return data.triggerType === 'manual' ? 'Manual · Run button' : data.triggerType || 'Manual · Run button';
     case 'delay':
       return data.durationMs ? `Wait ${Math.round(data.durationMs / 3600000)}h` : 'Set duration';
     case 'branch':

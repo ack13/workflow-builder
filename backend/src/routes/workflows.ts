@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as store from '../db/store';
 import { WorkflowEngine } from '../engine/WorkflowEngine';
+import { validateGraph } from '../engine/graph';
 
 export const router = Router();
 const engine = new WorkflowEngine();
@@ -44,8 +45,18 @@ router.put('/workflows/:id/name', async (req, res) => {
 });
 
 router.post('/workflows/:id/publish', async (req, res) => {
-  const workflow = await store.publish(req.params.id);
-  res.json(workflow);
+  try {
+    const current = await store.getWorkflow(req.params.id);
+    const errors = validateGraph(current.draft_graph);
+    if (errors.length) return res.status(400).json({ error: errors.join(' ') });
+
+    const workflow = await store.publish(req.params.id);
+    return res.json(workflow);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to publish workflow.';
+    const status = message.includes('not found') ? 404 : 400;
+    return res.status(status).json({ error: message });
+  }
 });
 
 // Manually fire a workflow for testing, or wire this up behind real

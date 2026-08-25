@@ -132,10 +132,14 @@ export default function Canvas({ workflowId, onBack }) {
   };
 
   const publish = async () => {
-    await saveDraft();
-    await api.publish(workflowId);
-    setWorkflowStatus('published');
-    setStatus('Published');
+    try {
+      await saveDraft();
+      await api.publish(workflowId);
+      setWorkflowStatus('published');
+      setStatus('Published — ready for manual runs');
+    } catch (error) {
+      setStatus(`Cannot publish: ${error.message}`);
+    }
   };
 
   const run = async () => {
@@ -190,9 +194,9 @@ export default function Canvas({ workflowId, onBack }) {
           <button
             onClick={run}
             disabled={workflowStatus !== 'published' || !runEntityType.trim() || !runEntityId.trim()}
-            title={workflowStatus !== 'published' ? 'Publish the workflow before running it' : 'Run the published version'}
+            title={workflowStatus !== 'published' ? 'Publish the workflow before running it' : 'Manually run the published version'}
           >
-            Run published version
+            Run manually
           </button>
           <button onClick={() => setShowHistory((shown) => !shown)}>
             {showHistory ? 'Hide history' : 'Execution history'}
@@ -211,7 +215,7 @@ export default function Canvas({ workflowId, onBack }) {
           <div style={{ flex: 1 }}>
             <label style={{ display: 'block', fontSize: 11, color: '#666' }}>Test context (JSON)</label>
             <textarea aria-label="Test context JSON" value={runContext} onChange={(e) => setRunContext(e.target.value)} rows={3} spellCheck={false} style={{ width: '100%', padding: 6, boxSizing: 'border-box', fontFamily: 'monospace', resize: 'vertical' }} />
-            <div style={{ fontSize: 11, color: '#666', marginTop: 3 }}>Run always uses the latest published version, never unsaved canvas changes.</div>
+            <div style={{ fontSize: 11, color: '#666', marginTop: 3 }}>Run manually starts the latest published version, never unsaved canvas changes.</div>
           </div>
           {runResult && (
             <div style={{ minWidth: 230, fontSize: 12, padding: 8, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 4 }}>

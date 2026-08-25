@@ -31,6 +31,9 @@ export function validateGraph(value: unknown): string[] {
   const triggers = nodes.filter((node) => node?.type === 'trigger');
   if (triggers.length === 0) errors.push('Add a Trigger step before running this workflow.');
   if (triggers.length > 1) errors.push('A workflow must contain exactly one Trigger step.');
+  if (triggers.length === 1 && triggers[0].data?.triggerType !== 'manual') {
+    errors.push('Only Manual triggers are currently supported. Change the Trigger type to manual.');
+  }
 
   for (const edge of edges) {
     if (!edge || typeof edge.source !== 'string' || typeof edge.target !== 'string') {
