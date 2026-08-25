@@ -1,0 +1,96 @@
+:root {
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #172033;
+  background: #f3f6fb;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: #f3f6fb; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+
+.builder-shell { display: flex; min-width: 1000px; height: 100vh; overflow: hidden; background: #f3f6fb; }
+.builder-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.command-bar { min-height: 68px; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 9px; align-items: center; background: rgba(255,255,255,.96); border-bottom: 1px solid #e3e9f2; box-shadow: 0 1px 0 rgba(15,23,42,.03); z-index: 5; }
+.command-spacer { flex: 1; }
+.workflow-name-input { width: min(260px, 22vw); border: 1px solid transparent !important; background: transparent; border-radius: 8px !important; padding: 7px 9px !important; font-size: 16px !important; font-weight: 750 !important; color: #15203a; }
+.workflow-name-input:hover, .workflow-name-input:focus { border-color: #d7deea !important; background: #f8fafc; outline: none; }
+
+.button { min-height: 38px; padding: 0 13px; border-radius: 9px; border: 1px solid transparent; font-size: 12px; font-weight: 700; transition: .16s ease; white-space: nowrap; }
+.button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(30,41,59,.11); }
+.button:disabled { opacity: .45; cursor: not-allowed; }
+.button-ghost { background: transparent; color: #526079; border-color: #dce3ed; }
+.button-secondary { background: #fff; color: #334155; border-color: #d5dde9; }
+.button-primary { background: linear-gradient(135deg,#5b5ce2,#7447db); color: #fff; box-shadow: 0 4px 12px rgba(91,92,226,.22); }
+.button-run { background: #172033; color: #fff; }
+.status-pill { padding: 5px 9px; border-radius: 999px; font-size: 10px; white-space: nowrap; }
+.status-unsaved { color: #9a5a05; background: #fff4d6; }
+.status-strip { padding: 5px 16px; background: #f8fafc; border-bottom: 1px solid #e5eaf2; color: #64748b; font-size: 11px; }
+
+.palette-panel, .inspector-panel { flex: 0 0 250px; padding: 20px 15px; background: #fbfcfe; overflow-y: auto; z-index: 6; }
+.palette-panel { border-right: 1px solid #e1e7f0; }
+.inspector-panel { flex-basis: 300px; border-left: 1px solid #e1e7f0; box-shadow: -10px 0 30px rgba(30,41,59,.035); }
+.panel-eyebrow { color: #7967dc; font-size: 10px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.panel-title { margin: 4px 0 2px; font-size: 18px; letter-spacing: -.02em; }
+.panel-subtitle { margin: 0 0 18px; color: #8a96aa; font-size: 11px; }
+.palette-item { --step-color:#64748b; display: flex; align-items: center; gap: 11px; padding: 11px; margin-bottom: 9px; cursor: grab; border: 1px solid #e3e8f0; border-radius: 11px; background: #fff; box-shadow: 0 2px 7px rgba(30,41,59,.04); transition: .16s ease; }
+.palette-item:hover { transform: translateX(3px); border-color: var(--step-color); box-shadow: 0 7px 18px rgba(30,41,59,.08); }
+.palette-item:active { cursor: grabbing; }
+.palette-item-icon { width: 9px; height: 28px; border-radius: 99px; background: var(--step-color); opacity: .9; }
+.palette-item-label { color: #25324a; font-size: 12px; font-weight: 750; }
+.palette-item-description { margin-top: 2px; color: #8490a4; font-size: 10px; line-height: 1.35; }
+.palette-tip { margin-top: 18px; padding: 10px; color: #718096; background: #f0f3f8; border-radius: 9px; font-size: 10px; }
+.palette-tip span { color: #6555d9; font-weight: 900; margin-right: 5px; }
+
+.inspector-panel h3 { margin: 4px 0 18px; font-size: 16px; }
+.inspector-panel label { font-size: 10px !important; font-weight: 700; color: #667085 !important; text-transform: uppercase; letter-spacing: .04em; }
+.inspector-panel input, .inspector-panel select, .inspector-panel textarea { border: 1px solid #dce3ed; border-radius: 8px; background: #fff; color: #263248; outline: none; }
+.inspector-panel input:focus, .inspector-panel select:focus, .inspector-panel textarea:focus { border-color: #7967dc; box-shadow: 0 0 0 3px rgba(121,103,220,.1); }
+.inspector-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #8290a6; }
+.inspector-empty strong { color: #43506a; font-size: 13px; }
+.inspector-empty span { max-width: 180px; margin-top: 5px; font-size: 11px; line-height: 1.5; }
+.empty-icon { width: 42px; height: 42px; display: grid; place-items: center; margin-bottom: 10px; border-radius: 13px; background: #f0edff; color: #715ad7; font-size: 23px; }
+.icon-button { border: 0 !important; background: #f1f4f8 !important; border-radius: 8px; width: 30px; height: 30px; color: #69758a; }
+.danger-button { margin-top: 10px !important; border-radius: 8px !important; padding: 8px 11px !important; font-weight: 700; }
+
+.run-panel { padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start; background: #fff; border-bottom: 1px solid #e2e8f0; }
+.run-panel label { display: block; margin-bottom: 5px; color: #667085; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.run-panel label span { padding: 2px 5px; background: #eef2f7; border-radius: 4px; font-size: 8px; }
+.run-panel input, .run-panel textarea { border: 1px solid #d8e0eb; border-radius: 8px; outline: none; }
+.run-panel input:focus, .run-panel textarea:focus { border-color: #7967dc; box-shadow: 0 0 0 3px rgba(121,103,220,.1); }
+.field-hint { margin-top: 4px; color: #8a96a8; font-size: 10px; }
+.run-result-card { min-width: 230px; padding: 10px 12px; border: 1px solid #dce5f0; border-radius: 10px; background: #f8fafc; font-size: 11px; }
+.validation-banner { padding: 10px 16px; background: #fff5f6; border-bottom: 1px solid #fecdd3; color: #9f1239; font-size: 11px; }
+.validation-banner ul { margin-bottom: 0 !important; }
+.execution-history { height: 280px; display: flex; flex-direction: column; background: #fff; border-bottom: 1px solid #dbe2ea; box-shadow: inset 0 8px 20px rgba(30,41,59,.025); }
+.execution-history table { color: #46536a; }
+.execution-history th { padding: 8px 6px !important; color: #69758a; font-size: 9px; text-transform: uppercase; letter-spacing: .05em; }
+.execution-history button { padding: 5px 9px; border: 1px solid #dce3ed; border-radius: 7px; background: #fff; color: #475569; font-size: 10px; font-weight: 700; }
+.canvas-area { position: relative; flex: 1; min-height: 0; background: #f5f7fb; }
+.canvas-area .react-flow__background { opacity: .55; }
+.canvas-area .react-flow__controls { overflow: hidden; border: 1px solid #dfe5ee; border-radius: 10px; box-shadow: 0 7px 20px rgba(30,41,59,.09); }
+.canvas-area .react-flow__minimap { border: 1px solid #dfe5ee; border-radius: 12px; box-shadow: 0 8px 24px rgba(30,41,59,.08); overflow: hidden; }
+
+.workflow-node { min-width: 190px; padding: 11px 14px 12px; border: 1px solid #dde4ee; border-left: 5px solid var(--node-color); border-radius: 12px; background: #fff; box-shadow: 0 6px 18px rgba(30,41,59,.09); transition: .16s ease; }
+.workflow-node:hover { transform: translateY(-1px); box-shadow: 0 10px 25px rgba(30,41,59,.13); }
+.workflow-node.is-selected { box-shadow: 0 0 0 3px color-mix(in srgb, var(--node-color) 18%, transparent), 0 10px 25px rgba(30,41,59,.13); }
+.workflow-node-type { color: var(--node-color); font-size: 9px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.workflow-node-summary { margin-top: 5px; color: #1e293b; font-size: 13px; font-weight: 650; line-height: 1.35; word-break: break-word; }
+.workflow-node .react-flow__handle { width: 9px; height: 9px; border: 2px solid #fff; background: var(--node-color); box-shadow: 0 0 0 1px var(--node-color); }
+
+.workflow-list-page { max-width: 920px; margin: 64px auto; padding: 0 24px; }
+.workflow-list-page h1 { margin: 5px 0 3px; font-size: 30px; letter-spacing: -.04em; }
+.workflow-list-page p { margin: 0; color: #7b879a; font-size: 13px; }
+.workflow-table { width: 100%; margin-top: 24px; border-collapse: separate !important; border-spacing: 0; overflow: hidden; background: #fff; border: 1px solid #e0e6ef; border-radius: 14px; box-shadow: 0 10px 30px rgba(30,41,59,.06); }
+.workflow-table th { padding: 12px !important; background: #f8fafc; }
+.workflow-table td { padding: 14px 12px !important; }
+
+@media (max-width: 1400px) {
+  .palette-panel { flex-basis: 210px; }
+  .inspector-panel { flex-basis: 270px; }
+  .command-bar { gap: 7px; padding: 10px 12px; }
+  .command-bar .button { min-height: 34px; padding: 0 10px; font-size: 11px; }
+  .workflow-name-input { width: 150px; }
+  .run-panel { flex-wrap: wrap; }
+}

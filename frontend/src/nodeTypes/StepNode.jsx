@@ -6,23 +6,13 @@ export default function StepNode({ id, type, data, selected }) {
   const config = NODE_CONFIG[type];
 
   return (
-    <div
-      style={{
-        border: `2px solid ${config.color}`,
-        borderRadius: 8,
-        padding: '8px 14px',
-        background: '#fff',
-        minWidth: 160,
-        boxShadow: selected ? `0 0 0 3px ${config.color}33` : '0 1px 3px rgba(0,0,0,0.15)',
-        fontFamily: 'sans-serif',
-      }}
-    >
+    <div className={`workflow-node ${selected ? 'is-selected' : ''}`} style={{ '--node-color': config.color }}>
       {config.hasInput && <Handle type="target" position={Position.Top} />}
 
-      <div style={{ fontSize: 11, fontWeight: 700, color: config.color, textTransform: 'uppercase' }}>
+      <div className="workflow-node-type">
         {config.label}
       </div>
-      <div style={{ fontSize: 13, marginTop: 2, color: '#111', wordBreak: 'break-word' }}>
+      <div className="workflow-node-summary">
         {summarizeNode(type, data)}
       </div>
 
@@ -45,4 +35,3 @@ export default function StepNode({ id, type, data, selected }) {
     </div>
   );
 }
-

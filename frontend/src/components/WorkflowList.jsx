@@ -25,10 +25,10 @@ export default function WorkflowList({ onOpen }) {
   };
 
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: 800, margin: '40px auto', padding: '0 16px' }}>
+    <div className="workflow-list-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h1 style={{ fontSize: 20 }}>Workflows</h1>
-        <button onClick={handleCreate} disabled={creating} style={{ padding: '8px 14px', fontWeight: 700 }}>
+        <div><div className="panel-eyebrow">Automation studio</div><h1>Workflows</h1><p>Design, publish, and inspect automated processes.</p></div>
+        <button className="button button-primary" onClick={handleCreate} disabled={creating}>
           {creating ? 'Creating…' : '+ New workflow'}
         </button>
       </div>
@@ -39,7 +39,7 @@ export default function WorkflowList({ onOpen }) {
       )}
 
       {workflows && workflows.length > 0 && (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table className="workflow-table">
           <thead>
             <tr style={{ textAlign: 'left', borderBottom: '1px solid #e5e7eb', fontSize: 12, color: '#666' }}>
               <th style={{ padding: '8px 4px' }}>Name</th>

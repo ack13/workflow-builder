@@ -12,8 +12,10 @@ function getDurationParts(data) {
 export default function Inspector({ node, allNodes, onChange, onDelete, onClose }) {
   if (!node) {
     return (
-      <aside style={{ width: 280, borderLeft: '1px solid #e5e7eb', padding: 12, fontFamily: 'sans-serif', color: '#999' }}>
-        Select a step to edit it.
+      <aside className="inspector-panel inspector-empty">
+        <div className="empty-icon">◇</div>
+        <strong>No step selected</strong>
+        <span>Select a node on the canvas to configure it.</span>
       </aside>
     );
   }
@@ -26,10 +28,10 @@ export default function Inspector({ node, allNodes, onChange, onDelete, onClose 
   };
 
   return (
-    <aside style={{ width: 280, borderLeft: '1px solid #e5e7eb', padding: 12, fontFamily: 'sans-serif' }}>
+    <aside className="inspector-panel">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ fontSize: 13, color: config.color, textTransform: 'uppercase' }}>{config.label}</h3>
-        <button onClick={onClose} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>✕</button>
+        <div><div className="panel-eyebrow">Step settings</div><h3 style={{ color: config.color }}>{config.label}</h3></div>
+        <button className="icon-button" onClick={onClose}>✕</button>
       </div>
 
       {config.fields.map((field) => (
@@ -119,7 +121,7 @@ export default function Inspector({ node, allNodes, onChange, onDelete, onClose 
         </div>
       ))}
 
-      <button
+      <button className="danger-button"
         onClick={() => onDelete(node.id)}
         style={{ marginTop: 8, color: '#be123c', border: '1px solid #be123c', background: 'none', borderRadius: 4, padding: '6px 10px', cursor: 'pointer' }}
       >

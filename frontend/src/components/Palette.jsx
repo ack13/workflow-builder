@@ -8,8 +8,10 @@ export default function Palette() {
   };
 
   return (
-    <aside style={{ width: 220, borderRight: '1px solid #e5e7eb', padding: 12, fontFamily: 'sans-serif' }}>
-      <h3 style={{ fontSize: 13, textTransform: 'uppercase', color: '#666' }}>Legend</h3>
+    <aside className="palette-panel">
+      <div className="panel-eyebrow">Builder</div>
+      <h3 className="panel-title">Workflow steps</h3>
+      <p className="panel-subtitle">Drag a step onto the canvas</p>
       {NODE_TYPE_LIST.map((type) => {
         const config = NODE_CONFIG[type];
         return (
@@ -17,22 +19,19 @@ export default function Palette() {
             key={type}
             draggable
             onDragStart={(e) => onDragStart(e, type)}
-            style={{
-              border: `1.5px solid ${config.color}`,
-              borderRadius: 6,
-              padding: '8px 10px',
-              marginBottom: 8,
-              cursor: 'grab',
-              background: '#fff',
-            }}
+            className="palette-item"
+            style={{ '--step-color': config.color }}
             title={config.description}
           >
-            <div style={{ fontSize: 12, fontWeight: 700, color: config.color }}>{config.label}</div>
-            <div style={{ fontSize: 11, color: '#666' }}>{config.description}</div>
+            <div className="palette-item-icon" />
+            <div>
+              <div className="palette-item-label">{config.label}</div>
+              <div className="palette-item-description">{config.description}</div>
+            </div>
           </div>
         );
       })}
-      <p style={{ fontSize: 11, color: '#999', marginTop: 16 }}>Drag a step onto the canvas to add it.</p>
+      <div className="palette-tip"><span>↗</span> Drag, drop, then connect</div>
     </aside>
   );
 }

@@ -41,7 +41,7 @@ export default function ExecutionHistory({ workflowId, latestExecution }) {
   const selected = executions.find((execution) => execution.id === selectedId);
 
   return (
-    <section style={{ height: 270, borderBottom: '1px solid #dbe2ea', background: '#fff', fontFamily: 'sans-serif', display: 'flex', flexDirection: 'column' }}>
+    <section className="execution-history">
       <div style={{ padding: '7px 12px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center' }}>
         <strong style={{ fontSize: 13 }}>Execution history</strong>
         <span style={{ marginLeft: 8, fontSize: 11, color: '#64748b' }}>{executions.length} recent runs</span>

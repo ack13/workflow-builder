@@ -211,66 +211,66 @@ export default function Canvas({ workflowId, onBack }) {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div className="builder-shell">
       <Palette />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: 8, borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button onClick={handleBack}>← Workflows</button>
+      <main className="builder-main">
+        <div className="command-bar">
+          <button className="button button-ghost" onClick={handleBack}>← All workflows</button>
           <input
             value={workflowName}
             onChange={(e) => setWorkflowName(e.target.value)}
             onBlur={(e) => renameWorkflow(e.target.value)}
-            style={{ fontSize: 14, fontWeight: 700, border: '1px solid transparent', padding: '4px 6px', borderRadius: 4 }}
+            className="workflow-name-input"
             onFocus={(e) => (e.target.style.border = '1px solid #ccc')}
           />
-          <div style={{ flex: 1 }} />
-          <button onClick={refreshDraft} title="Reload the saved draft from the database">Refresh draft</button>
-          <button onClick={saveDraft}>Save draft</button>
-          <button onClick={publish} style={{ fontWeight: 700 }}>Publish</button>
-          <button
+          <div className="command-spacer" />
+          <button className="button button-ghost" onClick={refreshDraft} title="Reload the saved draft from the database">↻ Refresh</button>
+          <button className="button button-secondary" onClick={saveDraft}>Save draft</button>
+          <button className="button button-primary" onClick={publish}>Publish</button>
+          <button className="button button-run"
             onClick={run}
             disabled={workflowStatus !== 'published' || !runEntityType.trim() || !runEntityId.trim()}
             title={workflowStatus !== 'published' ? 'Publish the workflow before running it' : 'Manually run the published version'}
           >
             Run manually
           </button>
-          <button onClick={() => setShowHistory((shown) => !shown)}>
+          <button className="button button-secondary" onClick={() => setShowHistory((shown) => !shown)}>
             {showHistory ? 'Hide history' : 'Execution history'}
           </button>
-          <span style={{ fontSize: 12, color: '#666' }}>{status}</span>
-          {hasUnsavedChanges && <span style={{ fontSize: 11, color: '#b45309', fontWeight: 700 }}>Unsaved changes</span>}
+          {hasUnsavedChanges && <span className="status-pill status-unsaved">● Unsaved</span>}
         </div>
+        {status && <div className="status-strip">{status}</div>}
         {publishErrors.length > 0 && (
-          <div role="alert" style={{ padding: '8px 12px', background: '#fff1f2', borderBottom: '1px solid #fecdd3', color: '#9f1239', fontFamily: 'sans-serif', fontSize: 12 }}>
+          <div role="alert" className="validation-banner">
             <strong>Fix these issues before publishing:</strong>
             <ul style={{ margin: '5px 0 0', paddingLeft: 20 }}>
               {publishErrors.map((error) => <li key={error}>{error}</li>)}
             </ul>
           </div>
         )}
-        <div style={{ padding: '8px 12px', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 10, alignItems: 'flex-start', fontFamily: 'sans-serif' }}>
+        <div className="run-panel">
           <div>
-            <label style={{ display: 'block', fontSize: 11, color: '#666' }}>Entity type</label>
+            <label>Entity type</label>
             <input aria-label="Run entity type" value={runEntityType} onChange={(e) => setRunEntityType(e.target.value)} style={{ width: 100, padding: '4px 6px' }} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: 11, color: '#666' }}>Entity ID</label>
+            <label>Entity ID</label>
             <input aria-label="Run entity ID" value={runEntityId} onChange={(e) => setRunEntityId(e.target.value)} style={{ width: 90, padding: '4px 6px' }} />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: 11, color: '#666' }}>Test context (JSON)</label>
+            <label>Test context <span>JSON</span></label>
             <textarea aria-label="Test context JSON" value={runContext} onChange={(e) => setRunContext(e.target.value)} rows={3} spellCheck={false} style={{ width: '100%', padding: 6, boxSizing: 'border-box', fontFamily: 'monospace', resize: 'vertical' }} />
-            <div style={{ fontSize: 11, color: '#666', marginTop: 3 }}>Run manually starts the latest published version, never unsaved canvas changes.</div>
+            <div className="field-hint">Manual runs always use the latest published version.</div>
           </div>
           {runResult && (
-            <div style={{ minWidth: 230, fontSize: 12, padding: 8, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 4 }}>
+            <div className="run-result-card">
               <div><strong>Execution ID:</strong> <span style={{ wordBreak: 'break-all' }}>{runResult.id}</span></div>
               <div style={{ marginTop: 5 }}><strong>Status:</strong> {runResult.status}</div>
             </div>
           )}
         </div>
         {showHistory && <ExecutionHistory workflowId={workflowId} latestExecution={runResult} />}
-        <div ref={wrapperRef} style={{ flex: 1 }} onDrop={onDrop} onDragOver={(e) => e.preventDefault()}>
+        <div className="canvas-area" ref={wrapperRef} onDrop={onDrop} onDragOver={(e) => e.preventDefault()}>
           {!loaded ? (
             <div style={{ padding: 24, color: '#666', fontFamily: 'sans-serif' }}>Loading…</div>
           ) : (
@@ -292,7 +292,7 @@ export default function Canvas({ workflowId, onBack }) {
             </ReactFlow>
           )}
         </div>
-      </div>
+      </main>
       <Inspector
         node={selectedNode}
         allNodes={nodes}
