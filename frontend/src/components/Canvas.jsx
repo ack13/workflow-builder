@@ -35,6 +35,8 @@ export default function Canvas({ workflowId, onBack }) {
   const [workflowName, setWorkflowName] = useState('');
   const savedNameRef = useRef(''); // last name confirmed saved to the backend
   const [loaded, setLoaded] = useState(false);
+  const [runEntityType, setRunEntityType] = useState('test');
+  const [runEntityId, setRunEntityId] = useState('1');
 
   // Load the workflow's saved draft graph whenever we open a (possibly
   // different) workflow id — without this the canvas always started blank.
@@ -114,6 +116,16 @@ export default function Canvas({ workflowId, onBack }) {
     setStatus('Published');
   };
 
+  const run = async () => {
+    setStatus('Running...');
+    try {
+      const execution = await api.run(workflowId, runEntityType, runEntityId, {});
+      setStatus(`Run ${execution.status}`);
+    } catch (error) {
+      setStatus(error.message);
+    }
+  };
+
   const renameWorkflow = async (newName) => {
     if (!newName.trim() || newName === savedNameRef.current) return;
     savedNameRef.current = newName;
@@ -141,6 +153,21 @@ export default function Canvas({ workflowId, onBack }) {
           <div style={{ flex: 1 }} />
           <button onClick={saveDraft}>Save draft</button>
           <button onClick={publish} style={{ fontWeight: 700 }}>Publish</button>
+          <input
+            aria-label="Run entity type"
+            value={runEntityType}
+            onChange={(e) => setRunEntityType(e.target.value)}
+            placeholder="Entity type"
+            style={{ width: 90, padding: '4px 6px' }}
+          />
+          <input
+            aria-label="Run entity ID"
+            value={runEntityId}
+            onChange={(e) => setRunEntityId(e.target.value)}
+            placeholder="Entity ID"
+            style={{ width: 70, padding: '4px 6px' }}
+          />
+          <button onClick={run} disabled={!runEntityType.trim() || !runEntityId.trim()}>Run</button>
           <span style={{ fontSize: 12, color: '#666' }}>{status}</span>
         </div>
         <div ref={wrapperRef} style={{ flex: 1 }} onDrop={onDrop} onDragOver={(e) => e.preventDefault()}>
