@@ -1,0 +1,47 @@
+import { Router } from 'express';
+import * as store from '../db/store';
+import { WorkflowEngine } from '../engine/WorkflowEngine';
+
+export const router = Router();
+const engine = new WorkflowEngine();
+
+// List view: intentionally excludes draft_graph/published_graph (they're
+// full JSONB blobs) since a list page only needs name/status/timestamps.
+router.get('/workflows', async (req, res) => {
+  const workflows = await store.listWorkflows();
+  res.json(workflows);
+});
+
+router.post('/workflows', async (req, res) => {
+  const workflow = await store.createWorkflow(req.body.name ?? 'Untitled workflow');
+  res.status(201).json(workflow);
+});
+
+router.get('/workflows/:id', async (req, res) => {
+  const workflow = await store.getWorkflow(req.params.id);
+  res.json(workflow);
+});
+
+// Autosave target for the canvas: { nodes: [...], edges: [...] }
+router.put('/workflows/:id/draft', async (req, res) => {
+  const workflow = await store.saveDraft(req.params.id, req.body);
+  res.json(workflow);
+});
+
+router.put('/workflows/:id/name', async (req, res) => {
+  const workflow = await store.renameWorkflow(req.params.id, req.body.name);
+  res.json(workflow);
+});
+
+router.post('/workflows/:id/publish', async (req, res) => {
+  const workflow = await store.publish(req.params.id);
+  res.json(workflow);
+});
+
+// Manually fire a workflow for testing, or wire this up behind real
+// triggers (form submission webhook, cron for "fee overdue", etc).
+router.post('/workflows/:id/run', async (req, res) => {
+  const { entityType, entityId, context } = req.body;
+  const execution = await engine.start(req.params.id, entityType, entityId, context ?? {});
+  res.status(201).json(execution);
+});
