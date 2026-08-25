@@ -7,7 +7,9 @@ async function request(path, options) {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new Error(body?.error || `Request failed (${res.status}).`);
+    const error = new Error(body?.error || `Request failed (${res.status}).`);
+    error.details = body?.errors ?? [];
+    throw error;
   }
   return res.json();
 }

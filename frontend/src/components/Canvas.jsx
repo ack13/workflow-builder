@@ -26,6 +26,15 @@ function bumpCounterPast(loadedNodes) {
   idCounter = Math.max(idCounter, max + 1);
 }
 
+function editableGraph(nodes, edges) {
+  return {
+    nodes: nodes.map(({ id, type, position, data }) => ({ id, type, position, data })),
+    edges: edges.map(({ id, source, target, sourceHandle, label }) => ({ id, source, target, sourceHandle, label })),
+  };
+}
+
+const graphFingerprint = (graph) => JSON.stringify(graph);
+
 export default function Canvas({ workflowId, onBack }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -35,6 +44,7 @@ export default function Canvas({ workflowId, onBack }) {
   const [status, setStatus] = useState('');
   const [workflowName, setWorkflowName] = useState('');
   const savedNameRef = useRef(''); // last name confirmed saved to the backend
+  const savedDraftRef = useRef(''); // normalized graph last loaded/saved
   const [loaded, setLoaded] = useState(false);
   const [runEntityType, setRunEntityType] = useState('test');
   const [runEntityId, setRunEntityId] = useState('1');
@@ -42,6 +52,7 @@ export default function Canvas({ workflowId, onBack }) {
   const [workflowStatus, setWorkflowStatus] = useState('draft');
   const [runResult, setRunResult] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [publishErrors, setPublishErrors] = useState([]);
 
   // A delayed execution initially returns "waiting". Keep its status current
   // so the result card eventually shows completed/failed without another run.
@@ -65,6 +76,7 @@ export default function Canvas({ workflowId, onBack }) {
     api.getWorkflow(workflowId).then((wf) => {
       const savedNodes = wf.draft_graph?.nodes ?? [];
       const savedEdges = wf.draft_graph?.edges ?? [];
+      savedDraftRef.current = graphFingerprint(editableGraph(savedNodes, savedEdges));
       setNodes(savedNodes);
       setEdges(savedEdges);
       bumpCounterPast(savedNodes);
@@ -77,6 +89,8 @@ export default function Canvas({ workflowId, onBack }) {
   }, [workflowId, setNodes, setEdges]);
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId) ?? null;
+  const currentGraph = editableGraph(nodes, edges);
+  const hasUnsavedChanges = loaded && graphFingerprint(currentGraph) !== savedDraftRef.current;
 
   const onConnect = useCallback(
     (connection) => setEdges((eds) => addEdge(connection, eds)),
@@ -120,18 +134,38 @@ export default function Canvas({ workflowId, onBack }) {
     setSelectedNodeId(null);
   };
 
-  const graph = () => ({
-    nodes: nodes.map(({ id, type, position, data }) => ({ id, type, position, data })),
-    edges: edges.map(({ id, source, target, sourceHandle, label }) => ({ id, source, target, sourceHandle, label })),
-  });
-
   const saveDraft = async () => {
     setStatus('Saving...');
-    await api.saveDraft(workflowId, graph());
+    const draft = editableGraph(nodes, edges);
+    await api.saveDraft(workflowId, draft);
+    savedDraftRef.current = graphFingerprint(draft);
     setStatus('Saved');
   };
 
+  const refreshDraft = async () => {
+    if (hasUnsavedChanges && !window.confirm('Discard your unsaved canvas changes and reload the draft from the database?')) {
+      return;
+    }
+
+    setStatus('Refreshing draft...');
+    try {
+      const wf = await api.getWorkflow(workflowId);
+      const savedNodes = wf.draft_graph?.nodes ?? [];
+      const savedEdges = wf.draft_graph?.edges ?? [];
+      savedDraftRef.current = graphFingerprint(editableGraph(savedNodes, savedEdges));
+      setNodes(savedNodes);
+      setEdges(savedEdges);
+      bumpCounterPast(savedNodes);
+      setSelectedNodeId(null);
+      setWorkflowStatus(wf.status);
+      setStatus('Draft refreshed from database');
+    } catch (error) {
+      setStatus(`Refresh failed: ${error.message}`);
+    }
+  };
+
   const publish = async () => {
+    setPublishErrors([]);
     try {
       await saveDraft();
       await api.publish(workflowId);
@@ -139,6 +173,7 @@ export default function Canvas({ workflowId, onBack }) {
       setStatus('Published — ready for manual runs');
     } catch (error) {
       setStatus(`Cannot publish: ${error.message}`);
+      setPublishErrors(error.details ?? [error.message]);
     }
   };
 
@@ -189,6 +224,7 @@ export default function Canvas({ workflowId, onBack }) {
             onFocus={(e) => (e.target.style.border = '1px solid #ccc')}
           />
           <div style={{ flex: 1 }} />
+          <button onClick={refreshDraft} title="Reload the saved draft from the database">Refresh draft</button>
           <button onClick={saveDraft}>Save draft</button>
           <button onClick={publish} style={{ fontWeight: 700 }}>Publish</button>
           <button
@@ -202,7 +238,16 @@ export default function Canvas({ workflowId, onBack }) {
             {showHistory ? 'Hide history' : 'Execution history'}
           </button>
           <span style={{ fontSize: 12, color: '#666' }}>{status}</span>
+          {hasUnsavedChanges && <span style={{ fontSize: 11, color: '#b45309', fontWeight: 700 }}>Unsaved changes</span>}
         </div>
+        {publishErrors.length > 0 && (
+          <div role="alert" style={{ padding: '8px 12px', background: '#fff1f2', borderBottom: '1px solid #fecdd3', color: '#9f1239', fontFamily: 'sans-serif', fontSize: 12 }}>
+            <strong>Fix these issues before publishing:</strong>
+            <ul style={{ margin: '5px 0 0', paddingLeft: 20 }}>
+              {publishErrors.map((error) => <li key={error}>{error}</li>)}
+            </ul>
+          </div>
+        )}
         <div style={{ padding: '8px 12px', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 10, alignItems: 'flex-start', fontFamily: 'sans-serif' }}>
           <div>
             <label style={{ display: 'block', fontSize: 11, color: '#666' }}>Entity type</label>

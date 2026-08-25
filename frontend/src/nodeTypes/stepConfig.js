@@ -35,8 +35,8 @@ export const NODE_CONFIG = {
     ],
   },
   communicate: {
-    label: 'Communicate',
-    description: 'Send an email.',
+    label: 'Send email (mock)',
+    description: 'Simulate an email; nothing is delivered.',
     color: '#2563eb',
     hasInput: true,
     outputs: ['default'],

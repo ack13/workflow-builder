@@ -48,7 +48,7 @@ router.post('/workflows/:id/publish', async (req, res) => {
   try {
     const current = await store.getWorkflow(req.params.id);
     const errors = validateGraph(current.draft_graph);
-    if (errors.length) return res.status(400).json({ error: errors.join(' ') });
+    if (errors.length) return res.status(400).json({ error: 'Workflow validation failed.', errors });
 
     const workflow = await store.publish(req.params.id);
     return res.json(workflow);

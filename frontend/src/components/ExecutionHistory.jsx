@@ -78,12 +78,19 @@ export default function ExecutionHistory({ workflowId, latestExecution }) {
               <strong style={{ fontSize: 11 }}>Nodes visited</strong>
               {!detail ? <p style={{ fontSize: 11 }}>Loading…</p> : (
                 <div>{detail.logs.map((log) => (
-                  <div key={log.id} style={{ borderLeft: `3px solid ${log.action === 'branch_taken' ? '#d97706' : '#94a3b8'}`, padding: '4px 7px', marginTop: 5, background: '#f8fafc', fontSize: 11 }}>
+                  <div key={log.id} style={{ borderLeft: `3px solid ${log.action === 'branch_taken' ? '#d97706' : log.action === 'email_sent' ? '#2563eb' : '#94a3b8'}`, padding: '4px 7px', marginTop: 5, background: '#f8fafc', fontSize: 11 }}>
                     <span style={{ fontWeight: 700 }}>{log.node_type}</span> · {log.node_id} · {log.action}
                     <span style={{ float: 'right', color: '#64748b' }}>{formatTime(log.created_at)}</span>
                     {log.action === 'branch_taken' && (
                       <div style={{ marginTop: 3, color: '#92400e' }}>
                         {String(log.detail?.actual)} {log.detail?.operator} {String(log.detail?.expected)} → <strong>{log.detail?.selected}</strong>
+                      </div>
+                    )}
+                    {log.action === 'email_sent' && (
+                      <div style={{ marginTop: 3, color: '#1e40af' }}>
+                        Mocked email to <strong>{log.detail?.recipient || 'empty recipient'}</strong><br />
+                        Subject: {log.detail?.subject || '(empty)'} · ID: {log.detail?.messageId}
+                        <div style={{ color: '#b45309', fontWeight: 700 }}>Simulation only — no real email was delivered.</div>
                       </div>
                     )}
                   </div>
