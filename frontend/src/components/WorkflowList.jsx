@@ -10,6 +10,7 @@ const STATUS_STYLES = {
 export default function WorkflowList({ onOpen }) {
   const [workflows, setWorkflows] = useState(null); // null = loading
   const [creating, setCreating] = useState(false);
+  const [error, setError] = useState('');
 
   const refresh = () => api.listWorkflows().then(setWorkflows);
 
@@ -19,9 +20,15 @@ export default function WorkflowList({ onOpen }) {
 
   const handleCreate = async () => {
     setCreating(true);
-    const wf = await api.createWorkflow('Untitled workflow');
-    setCreating(false);
-    onOpen(wf.id);
+    setError('');
+    try {
+      const wf = await api.createWorkflow('Untitled workflow');
+      onOpen(wf.id);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCreating(false);
+    }
   };
 
   return (
@@ -32,6 +39,7 @@ export default function WorkflowList({ onOpen }) {
           {creating ? 'Creating…' : '+ New workflow'}
         </button>
       </div>
+      {error && <div role="alert" className="validation-banner">{error}</div>}
 
       {workflows === null && <p style={{ color: '#666' }}>Loading…</p>}
       {workflows !== null && workflows.length === 0 && (

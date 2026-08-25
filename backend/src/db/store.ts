@@ -15,18 +15,45 @@ export async function getWorkflow(id: string) {
 }
 
 export async function createWorkflow(name: string) {
-  const { rows } = await pool.query(
-    `INSERT INTO workflows (name) VALUES ($1) RETURNING *`,
-    [name]
-  );
-  return rows[0];
+  const baseName = name.trim() || 'Untitled workflow';
+  for (let number = 1; number <= 1000; number++) {
+    const candidate = number === 1 ? baseName : `${baseName} ${number}`;
+    try {
+      const { rows } = await pool.query(
+        `INSERT INTO workflows (name)
+         SELECT $1
+         WHERE NOT EXISTS (SELECT 1 FROM workflows WHERE lower(btrim(name)) = lower(btrim($1)))
+         RETURNING *`,
+        [candidate]
+      );
+      if (rows[0]) return rows[0];
+    } catch (error: any) {
+      if (error?.code !== '23505') throw error;
+    }
+  }
+  throw new Error('Unable to generate a unique workflow name.');
 }
 
 export async function renameWorkflow(id: string, name: string) {
-  const { rows } = await pool.query(
-    `UPDATE workflows SET name = $2, updated_at = now() WHERE id = $1 RETURNING *`,
-    [id, name]
+  const trimmedName = name.trim();
+  if (!trimmedName) throw new Error('Workflow name cannot be empty.');
+  const duplicate = await pool.query(
+    `SELECT 1 FROM workflows WHERE id <> $1 AND lower(btrim(name)) = lower($2) LIMIT 1`,
+    [id, trimmedName]
   );
+  if (duplicate.rows[0]) throw new Error(`A workflow named "${trimmedName}" already exists.`);
+
+  let rows;
+  try {
+    ({ rows } = await pool.query(
+      `UPDATE workflows SET name = $2, updated_at = now() WHERE id = $1 RETURNING *`,
+      [id, trimmedName]
+    ));
+  } catch (error: any) {
+    if (error?.code === '23505') throw new Error(`A workflow named "${trimmedName}" already exists.`);
+    throw error;
+  }
+  if (!rows[0]) throw new Error(`Workflow ${id} not found`);
   return rows[0];
 }
 

@@ -200,9 +200,21 @@ export default function Canvas({ workflowId, onBack }) {
   };
 
   const renameWorkflow = async (newName) => {
-    if (!newName.trim() || newName === savedNameRef.current) return;
-    savedNameRef.current = newName;
-    await api.renameWorkflow(workflowId, newName);
+    if (!newName.trim()) {
+      setWorkflowName(savedNameRef.current);
+      setStatus('Workflow name cannot be empty');
+      return;
+    }
+    if (newName === savedNameRef.current) return;
+    try {
+      const workflow = await api.renameWorkflow(workflowId, newName);
+      setWorkflowName(workflow.name);
+      savedNameRef.current = workflow.name;
+      setStatus('Workflow renamed');
+    } catch (error) {
+      setWorkflowName(savedNameRef.current);
+      setStatus(`Cannot rename: ${error.message}`);
+    }
   };
 
   const handleBack = async () => {

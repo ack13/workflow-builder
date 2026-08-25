@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "db:migrate": "node -r dotenv/config -e \"const url = new URL(process.env.DATABASE_URL); url.searchParams.delete('uselibpqcompat'); require('child_process').execFileSync('psql', [url.toString(), '-f', 'src/db/schema.sql'], { stdio: 'inherit' })\"",
-    "db:migrate:delay": "node -r dotenv/config -e \"const url = new URL(process.env.DATABASE_URL); url.searchParams.delete('uselibpqcompat'); require('child_process').execFileSync('psql', [url.toString(), '-f', 'src/db/migrations/001_delay_job_retries.sql'], { stdio: 'inherit' })\""
+    "db:migrate:delay": "node -r dotenv/config -e \"const url = new URL(process.env.DATABASE_URL); url.searchParams.delete('uselibpqcompat'); require('child_process').execFileSync('psql', [url.toString(), '-f', 'src/db/migrations/001_delay_job_retries.sql'], { stdio: 'inherit' })\"",
+    "db:migrate:names": "node -r dotenv/config -e \"const url = new URL(process.env.DATABASE_URL); url.searchParams.delete('uselibpqcompat'); require('child_process').execFileSync('psql', [url.toString(), '-f', 'src/db/migrations/002_unique_workflow_names.sql'], { stdio: 'inherit' })\""
   },
   "dependencies": {
     "cors": "^2.8.5",

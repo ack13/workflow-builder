@@ -14,8 +14,13 @@ router.get('/workflows', async (req, res) => {
 });
 
 router.post('/workflows', async (req, res) => {
-  const workflow = await store.createWorkflow(req.body.name ?? 'Untitled workflow');
-  res.status(201).json(workflow);
+  try {
+    const workflow = await store.createWorkflow(req.body.name ?? 'Untitled workflow');
+    return res.status(201).json(workflow);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to create workflow.';
+    return res.status(400).json({ error: message });
+  }
 });
 
 router.get('/workflows/:id', async (req, res) => {
@@ -40,8 +45,14 @@ router.put('/workflows/:id/draft', async (req, res) => {
 });
 
 router.put('/workflows/:id/name', async (req, res) => {
-  const workflow = await store.renameWorkflow(req.params.id, req.body.name);
-  res.json(workflow);
+  try {
+    const workflow = await store.renameWorkflow(req.params.id, req.body.name ?? '');
+    return res.json(workflow);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to rename workflow.';
+    const status = message.includes('already exists') ? 409 : message.includes('not found') ? 404 : 400;
+    return res.status(status).json({ error: message });
+  }
 });
 
 router.post('/workflows/:id/publish', async (req, res) => {
