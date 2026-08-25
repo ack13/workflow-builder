@@ -22,6 +22,16 @@ router.get('/workflows/:id', async (req, res) => {
   res.json(workflow);
 });
 
+router.get('/workflows/:id/executions', async (req, res) => {
+  try {
+    const executions = await store.listExecutions(req.params.id);
+    return res.json(executions);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to load execution history.';
+    return res.status(500).json({ error: message });
+  }
+});
+
 // Autosave target for the canvas: { nodes: [...], edges: [...] }
 router.put('/workflows/:id/draft', async (req, res) => {
   const workflow = await store.saveDraft(req.params.id, req.body);
@@ -68,6 +78,16 @@ router.get('/executions/:id', async (req, res) => {
     return res.json(execution);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Execution not found.';
+    return res.status(404).json({ error: message });
+  }
+});
+
+router.get('/executions/:id/history', async (req, res) => {
+  try {
+    const history = await store.getExecutionHistory(req.params.id);
+    return res.json(history);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Execution history not found.';
     return res.status(404).json({ error: message });
   }
 });

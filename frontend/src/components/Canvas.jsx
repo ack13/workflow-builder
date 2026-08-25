@@ -10,6 +10,7 @@ import ReactFlow, {
 import { nodeTypes, NODE_CONFIG } from '../nodeTypes';
 import Palette from './Palette.jsx';
 import Inspector from './Inspector.jsx';
+import ExecutionHistory from './ExecutionHistory.jsx';
 import { api } from '../api.js';
 
 let idCounter = 1;
@@ -40,6 +41,7 @@ export default function Canvas({ workflowId, onBack }) {
   const [runContext, setRunContext] = useState('{}');
   const [workflowStatus, setWorkflowStatus] = useState('draft');
   const [runResult, setRunResult] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
 
   // A delayed execution initially returns "waiting". Keep its status current
   // so the result card eventually shows completed/failed without another run.
@@ -192,6 +194,9 @@ export default function Canvas({ workflowId, onBack }) {
           >
             Run published version
           </button>
+          <button onClick={() => setShowHistory((shown) => !shown)}>
+            {showHistory ? 'Hide history' : 'Execution history'}
+          </button>
           <span style={{ fontSize: 12, color: '#666' }}>{status}</span>
         </div>
         <div style={{ padding: '8px 12px', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 10, alignItems: 'flex-start', fontFamily: 'sans-serif' }}>
@@ -215,6 +220,7 @@ export default function Canvas({ workflowId, onBack }) {
             </div>
           )}
         </div>
+        {showHistory && <ExecutionHistory workflowId={workflowId} latestExecution={runResult} />}
         <div ref={wrapperRef} style={{ flex: 1 }} onDrop={onDrop} onDragOver={(e) => e.preventDefault()}>
           {!loaded ? (
             <div style={{ padding: 24, color: '#666', fontFamily: 'sans-serif' }}>Loading…</div>

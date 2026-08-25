@@ -63,6 +63,43 @@ export async function getExecution(id: string) {
   return rows[0] as Execution;
 }
 
+export async function listExecutions(workflowId: string, limit = 50) {
+  const { rows } = await pool.query(
+    `SELECT e.*,
+            next_job.run_at AS scheduled_resume_at
+     FROM executions e
+     LEFT JOIN LATERAL (
+       SELECT run_at
+       FROM scheduled_jobs
+       WHERE execution_id = e.id AND status = 'pending'
+       ORDER BY run_at ASC
+       LIMIT 1
+     ) next_job ON true
+     WHERE e.workflow_id = $1
+     ORDER BY e.created_at DESC
+     LIMIT $2`,
+    [workflowId, limit]
+  );
+  return rows;
+}
+
+export async function getExecutionHistory(id: string) {
+  const execution = await getExecution(id);
+  const [logsResult, jobsResult] = await Promise.all([
+    pool.query(
+      `SELECT id, node_id, node_type, action, detail, created_at
+       FROM execution_logs WHERE execution_id = $1 ORDER BY created_at ASC, id ASC`,
+      [id]
+    ),
+    pool.query(
+      `SELECT id, node_id, run_at, status, created_at
+       FROM scheduled_jobs WHERE execution_id = $1 ORDER BY created_at ASC, id ASC`,
+      [id]
+    ),
+  ]);
+  return { execution, logs: logsResult.rows, scheduledJobs: jobsResult.rows };
+}
+
 export async function saveExecution(exec: Execution) {
   await pool.query(
     `UPDATE executions SET status=$2, current_node_id=$3, context=$4, updated_at=now() WHERE id=$1`,

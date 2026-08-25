@@ -22,4 +22,6 @@ export const api = {
   run: (id, entityType, entityId, context) =>
     request(`/workflows/${id}/run`, { method: 'POST', body: JSON.stringify({ entityType, entityId, context }) }),
   getExecution: (id) => request(`/executions/${id}`),
+  listExecutions: (workflowId) => request(`/workflows/${workflowId}/executions`),
+  getExecutionHistory: (id) => request(`/executions/${id}/history`),
 };

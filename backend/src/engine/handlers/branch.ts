@@ -1,5 +1,6 @@
 import { NodeHandler, Execution } from '../../types';
 import { nextNodeId } from '../graph';
+import * as store from '../../db/store';
 
 type Operator = 'equals' | 'not_equals' | 'gt' | 'lt' | 'exists';
 
@@ -28,11 +29,18 @@ function evaluate(operator: Operator, actual: any, expected: any): boolean {
 }
 
 export const branchHandler: NodeHandler = {
-  execute(node, graph, execution: Execution) {
+  async execute(node, graph, execution: Execution) {
     const { field, operator, value } = node.data ?? {};
     const actual = readPath(execution.context, field);
     const matched = evaluate(operator, actual, value);
     const handle = matched ? 'yes' : 'no';
+    await store.logStep(execution.id, node.id, node.type, 'branch_taken', {
+      field,
+      operator,
+      actual,
+      expected: value,
+      selected: handle,
+    });
     return { action: 'continue', nextNodeId: nextNodeId(graph, node.id, handle) };
   },
 };
