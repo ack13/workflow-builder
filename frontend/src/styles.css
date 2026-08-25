@@ -16,6 +16,8 @@ button { cursor: pointer; }
 .command-spacer { flex: 1; }
 .workflow-name-input { width: min(260px, 22vw); border: 1px solid transparent !important; background: transparent; border-radius: 8px !important; padding: 7px 9px !important; font-size: 16px !important; font-weight: 750 !important; color: #15203a; }
 .workflow-name-input:hover, .workflow-name-input:focus { border-color: #d7deea !important; background: #f8fafc; outline: none; }
+.workflow-name-input.has-error { border-color: #e11d48 !important; background: #fff7f8; }
+.workflow-name-error { max-width: 220px; padding: 5px 8px; border-radius: 7px; background: #fff1f2; color: #be123c; font-size: 10px; font-weight: 700; line-height: 1.3; }
 
 .button { min-height: 38px; padding: 0 13px; border-radius: 9px; border: 1px solid transparent; font-size: 12px; font-weight: 700; transition: .16s ease; white-space: nowrap; }
 .button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(30,41,59,.11); }

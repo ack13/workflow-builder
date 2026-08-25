@@ -43,6 +43,7 @@ export default function Canvas({ workflowId, onBack }) {
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const [status, setStatus] = useState('');
   const [workflowName, setWorkflowName] = useState('');
+  const [workflowNameError, setWorkflowNameError] = useState('');
   const savedNameRef = useRef(''); // last name confirmed saved to the backend
   const savedDraftRef = useRef(''); // normalized graph last loaded/saved
   const [loaded, setLoaded] = useState(false);
@@ -81,6 +82,7 @@ export default function Canvas({ workflowId, onBack }) {
       setEdges(savedEdges);
       bumpCounterPast(savedNodes);
       setWorkflowName(wf.name);
+      setWorkflowNameError('');
       setWorkflowStatus(wf.status);
       savedNameRef.current = wf.name;
       setSelectedNodeId(null);
@@ -202,18 +204,21 @@ export default function Canvas({ workflowId, onBack }) {
   const renameWorkflow = async (newName) => {
     if (!newName.trim()) {
       setWorkflowName(savedNameRef.current);
-      setStatus('Workflow name cannot be empty');
-      return;
+      setWorkflowNameError('Workflow name cannot be empty.');
+      return false;
     }
-    if (newName === savedNameRef.current) return;
+    if (newName === savedNameRef.current) return true;
     try {
       const workflow = await api.renameWorkflow(workflowId, newName);
       setWorkflowName(workflow.name);
       savedNameRef.current = workflow.name;
+      setWorkflowNameError('');
       setStatus('Workflow renamed');
+      return true;
     } catch (error) {
       setWorkflowName(savedNameRef.current);
-      setStatus(`Cannot rename: ${error.message}`);
+      setWorkflowNameError(error.message);
+      return false;
     }
   };
 
@@ -230,11 +235,17 @@ export default function Canvas({ workflowId, onBack }) {
           <button className="button button-ghost" onClick={handleBack}>← All workflows</button>
           <input
             value={workflowName}
-            onChange={(e) => setWorkflowName(e.target.value)}
+            onChange={(e) => {
+              setWorkflowName(e.target.value);
+              setWorkflowNameError('');
+            }}
             onBlur={(e) => renameWorkflow(e.target.value)}
-            className="workflow-name-input"
+            className={`workflow-name-input ${workflowNameError ? 'has-error' : ''}`}
+            aria-invalid={Boolean(workflowNameError)}
+            aria-describedby={workflowNameError ? 'workflow-name-error' : undefined}
             onFocus={(e) => (e.target.style.border = '1px solid #ccc')}
           />
+          {workflowNameError && <span id="workflow-name-error" className="workflow-name-error" role="alert">{workflowNameError}</span>}
           <div className="command-spacer" />
           <button className="button button-ghost" onClick={refreshDraft} title="Reload the saved draft from the database">↻ Refresh</button>
           <button className="button button-secondary" onClick={saveDraft}>Save draft</button>
