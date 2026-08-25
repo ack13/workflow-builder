@@ -91,6 +91,8 @@ export default function ExecutionHistory({ workflowId, latestExecution }) {
                 {detail.scheduledJobs.map((job) => (
                   <div key={job.id} style={{ padding: '5px 7px', marginTop: 5, background: '#fff7ed', fontSize: 11 }}>
                     Delay scheduled for <strong>{formatTime(job.run_at)}</strong> · {job.status}
+                    <div style={{ marginTop: 2 }}>Attempts: {job.retry_count}{job.last_attempt_at ? ` · Last attempt: ${formatTime(job.last_attempt_at)}` : ''}</div>
+                    {job.last_error && <div style={{ marginTop: 2, color: '#b91c1c' }}>Last error: {job.last_error}</div>}
                   </div>
                 ))}
                 </div>

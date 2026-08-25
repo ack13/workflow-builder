@@ -92,7 +92,7 @@ export async function getExecutionHistory(id: string) {
       [id]
     ),
     pool.query(
-      `SELECT id, node_id, run_at, status, created_at
+      `SELECT id, node_id, run_at, status, retry_count, last_error, last_attempt_at, claimed_at, created_at
        FROM scheduled_jobs WHERE execution_id = $1 ORDER BY created_at ASC, id ASC`,
       [id]
     ),
@@ -121,15 +121,46 @@ export async function scheduleJob(executionId: string, nodeId: string, runAt: Da
   );
 }
 
-/** Jobs whose time has come, oldest first. Used by the scheduler poller. */
-export async function getDueJobs(limit = 20) {
+/** Atomically claim due jobs. SKIP LOCKED lets many workers safely poll together. */
+export async function claimDueJobs(limit = 20) {
   const { rows } = await pool.query(
-    `SELECT * FROM scheduled_jobs WHERE status = 'pending' AND run_at <= now() ORDER BY run_at ASC LIMIT $1`,
+    `WITH candidates AS (
+       SELECT id FROM scheduled_jobs
+       WHERE status = 'pending'
+         AND run_at <= now()
+         AND (claimed_at IS NULL OR claimed_at < now() - interval '5 minutes')
+       ORDER BY run_at ASC
+       FOR UPDATE SKIP LOCKED
+       LIMIT $1
+     )
+     UPDATE scheduled_jobs job
+     SET claimed_at = now(), last_attempt_at = now(), retry_count = retry_count + 1
+     FROM candidates
+     WHERE job.id = candidates.id
+     RETURNING job.*`,
     [limit]
   );
   return rows;
 }
 
 export async function markJobDone(id: string) {
-  await pool.query(`UPDATE scheduled_jobs SET status = 'done' WHERE id = $1`, [id]);
+  await pool.query(`UPDATE scheduled_jobs SET status = 'done', claimed_at = NULL, last_error = NULL WHERE id = $1`, [id]);
+}
+
+export async function markJobFailed(id: string, error: string, maxAttempts: number, retryDelaySeconds: number) {
+  const { rows } = await pool.query(
+    `UPDATE scheduled_jobs
+     SET status = CASE WHEN retry_count >= $3 THEN 'failed' ELSE 'pending' END,
+         last_error = $2,
+         claimed_at = NULL,
+         run_at = CASE WHEN retry_count >= $3 THEN run_at ELSE now() + ($4 * interval '1 second') END
+     WHERE id = $1
+     RETURNING *`,
+    [id, error, maxAttempts, retryDelaySeconds]
+  );
+  return rows[0];
+}
+
+export async function markExecutionFailed(id: string) {
+  await pool.query(`UPDATE executions SET status = 'failed', updated_at = now() WHERE id = $1`, [id]);
 }

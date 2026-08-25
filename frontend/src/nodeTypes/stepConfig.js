@@ -18,8 +18,8 @@ export const NODE_CONFIG = {
     color: '#0891b2',
     hasInput: true,
     outputs: ['default'],
-    defaultData: { durationMs: 24 * 60 * 60 * 1000 },
-    fields: [{ key: 'durationMs', label: 'Wait (ms)', type: 'number' }],
+    defaultData: { durationValue: 10, durationUnit: 'seconds' },
+    fields: [{ key: 'duration', label: 'Wait for', type: 'duration' }],
   },
   branch: {
     label: 'Branch',
@@ -86,6 +86,7 @@ export function summarizeNode(type, data) {
     case 'trigger':
       return data.triggerType === 'manual' ? 'Manual · Run button' : data.triggerType || 'Manual · Run button';
     case 'delay':
+      if (data.durationValue && data.durationUnit) return `Wait ${data.durationValue} ${data.durationUnit}`;
       return data.durationMs ? `Wait ${Math.round(data.durationMs / 3600000)}h` : 'Set duration';
     case 'branch':
       return data.field ? `${data.field} ${data.operator} ${data.value}` : 'Set condition';

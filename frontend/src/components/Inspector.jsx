@@ -1,6 +1,14 @@
 import React from 'react';
 import { NODE_CONFIG, summarizeNode } from '../nodeTypes';
 
+function getDurationParts(data) {
+  if (data.durationValue && data.durationUnit) return { value: data.durationValue, unit: data.durationUnit };
+  const milliseconds = Number(data.durationMs);
+  const units = [['days', 86400000], ['hours', 3600000], ['minutes', 60000], ['seconds', 1000]];
+  const match = units.find(([, size]) => milliseconds >= size && milliseconds % size === 0);
+  return match ? { value: milliseconds / match[1], unit: match[0] } : { value: 10, unit: 'seconds' };
+}
+
 export default function Inspector({ node, allNodes, onChange, onDelete, onClose }) {
   if (!node) {
     return (
@@ -11,6 +19,7 @@ export default function Inspector({ node, allNodes, onChange, onDelete, onClose 
   }
 
   const config = NODE_CONFIG[node.type];
+  const duration = getDurationParts(node.data);
 
   const setField = (key, value) => {
     onChange(node.id, { ...node.data, [key]: value });
@@ -77,6 +86,27 @@ export default function Inspector({ node, allNodes, onChange, onDelete, onClose 
               onChange={(e) => setField(field.key, Number(e.target.value))}
               style={{ width: '100%', padding: 6, boxSizing: 'border-box' }}
             />
+          )}
+          {field.type === 'duration' && (
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input
+                type="number"
+                min="1"
+                value={duration.value}
+                onChange={(e) => onChange(node.id, { ...node.data, durationValue: Math.max(1, Number(e.target.value) || 1), durationUnit: duration.unit, durationMs: undefined })}
+                style={{ width: '45%', padding: 6, boxSizing: 'border-box' }}
+              />
+              <select
+                value={duration.unit}
+                onChange={(e) => onChange(node.id, { ...node.data, durationValue: duration.value, durationUnit: e.target.value, durationMs: undefined })}
+                style={{ flex: 1, padding: 6 }}
+              >
+                <option value="seconds">seconds</option>
+                <option value="minutes">minutes</option>
+                <option value="hours">hours</option>
+                <option value="days">days</option>
+              </select>
+            </div>
           )}
           {field.type === 'textarea' && (
             <textarea
