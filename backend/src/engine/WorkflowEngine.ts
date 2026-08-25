@@ -1,5 +1,5 @@
 import { Execution, GraphNode, NodeHandler, NodeType, WorkflowGraph } from '../types';
-import { getNode, nextNodeId } from './graph';
+import { getNode, nextNodeId, validateGraph } from './graph';
 import { triggerHandler } from './handlers/trigger';
 import { delayHandler } from './handlers/delay';
 import { branchHandler } from './handlers/branch';
@@ -27,8 +27,10 @@ export class WorkflowEngine {
     if (!workflow.published_graph) throw new Error('Workflow has no published version');
 
     const graph: WorkflowGraph = workflow.published_graph;
+    const graphErrors = validateGraph(graph);
+    if (graphErrors.length) throw new Error(graphErrors.join(' '));
     const trigger = graph.nodes.find((n) => n.type === 'trigger');
-    if (!trigger) throw new Error('Workflow has no trigger node');
+    if (!trigger) throw new Error('Add a Trigger step before running this workflow.');
 
     const execution = await store.createExecution({
       workflow_id: workflowId,

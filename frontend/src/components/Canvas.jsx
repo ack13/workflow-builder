@@ -37,6 +37,24 @@ export default function Canvas({ workflowId, onBack }) {
   const [loaded, setLoaded] = useState(false);
   const [runEntityType, setRunEntityType] = useState('test');
   const [runEntityId, setRunEntityId] = useState('1');
+  const [runContext, setRunContext] = useState('{}');
+  const [workflowStatus, setWorkflowStatus] = useState('draft');
+  const [runResult, setRunResult] = useState(null);
+
+  // A delayed execution initially returns "waiting". Keep its status current
+  // so the result card eventually shows completed/failed without another run.
+  useEffect(() => {
+    if (!runResult || !['running', 'waiting'].includes(runResult.status)) return undefined;
+    const timer = window.setInterval(async () => {
+      try {
+        const execution = await api.getExecution(runResult.id);
+        setRunResult(execution);
+      } catch {
+        // A transient refresh failure should not discard the last known result.
+      }
+    }, 3000);
+    return () => window.clearInterval(timer);
+  }, [runResult?.id, runResult?.status]);
 
   // Load the workflow's saved draft graph whenever we open a (possibly
   // different) workflow id — without this the canvas always started blank.
@@ -49,6 +67,7 @@ export default function Canvas({ workflowId, onBack }) {
       setEdges(savedEdges);
       bumpCounterPast(savedNodes);
       setWorkflowName(wf.name);
+      setWorkflowStatus(wf.status);
       savedNameRef.current = wf.name;
       setSelectedNodeId(null);
       setLoaded(true);
@@ -113,14 +132,27 @@ export default function Canvas({ workflowId, onBack }) {
   const publish = async () => {
     await saveDraft();
     await api.publish(workflowId);
+    setWorkflowStatus('published');
     setStatus('Published');
   };
 
   const run = async () => {
     setStatus('Running...');
+    setRunResult(null);
     try {
-      const execution = await api.run(workflowId, runEntityType, runEntityId, {});
-      setStatus(`Run ${execution.status}`);
+      let context;
+      try {
+        context = JSON.parse(runContext);
+      } catch {
+        throw new Error('Test context is not valid JSON.');
+      }
+      if (!context || Array.isArray(context) || typeof context !== 'object') {
+        throw new Error('Test context must be a JSON object.');
+      }
+
+      const execution = await api.run(workflowId, runEntityType, runEntityId, context);
+      setRunResult(execution);
+      setStatus('Run started successfully');
     } catch (error) {
       setStatus(error.message);
     }
@@ -153,22 +185,35 @@ export default function Canvas({ workflowId, onBack }) {
           <div style={{ flex: 1 }} />
           <button onClick={saveDraft}>Save draft</button>
           <button onClick={publish} style={{ fontWeight: 700 }}>Publish</button>
-          <input
-            aria-label="Run entity type"
-            value={runEntityType}
-            onChange={(e) => setRunEntityType(e.target.value)}
-            placeholder="Entity type"
-            style={{ width: 90, padding: '4px 6px' }}
-          />
-          <input
-            aria-label="Run entity ID"
-            value={runEntityId}
-            onChange={(e) => setRunEntityId(e.target.value)}
-            placeholder="Entity ID"
-            style={{ width: 70, padding: '4px 6px' }}
-          />
-          <button onClick={run} disabled={!runEntityType.trim() || !runEntityId.trim()}>Run</button>
+          <button
+            onClick={run}
+            disabled={workflowStatus !== 'published' || !runEntityType.trim() || !runEntityId.trim()}
+            title={workflowStatus !== 'published' ? 'Publish the workflow before running it' : 'Run the published version'}
+          >
+            Run published version
+          </button>
           <span style={{ fontSize: 12, color: '#666' }}>{status}</span>
+        </div>
+        <div style={{ padding: '8px 12px', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 10, alignItems: 'flex-start', fontFamily: 'sans-serif' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, color: '#666' }}>Entity type</label>
+            <input aria-label="Run entity type" value={runEntityType} onChange={(e) => setRunEntityType(e.target.value)} style={{ width: 100, padding: '4px 6px' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, color: '#666' }}>Entity ID</label>
+            <input aria-label="Run entity ID" value={runEntityId} onChange={(e) => setRunEntityId(e.target.value)} style={{ width: 90, padding: '4px 6px' }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={{ display: 'block', fontSize: 11, color: '#666' }}>Test context (JSON)</label>
+            <textarea aria-label="Test context JSON" value={runContext} onChange={(e) => setRunContext(e.target.value)} rows={3} spellCheck={false} style={{ width: '100%', padding: 6, boxSizing: 'border-box', fontFamily: 'monospace', resize: 'vertical' }} />
+            <div style={{ fontSize: 11, color: '#666', marginTop: 3 }}>Run always uses the latest published version, never unsaved canvas changes.</div>
+          </div>
+          {runResult && (
+            <div style={{ minWidth: 230, fontSize: 12, padding: 8, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 4 }}>
+              <div><strong>Execution ID:</strong> <span style={{ wordBreak: 'break-all' }}>{runResult.id}</span></div>
+              <div style={{ marginTop: 5 }}><strong>Status:</strong> {runResult.status}</div>
+            </div>
+          )}
         </div>
         <div ref={wrapperRef} style={{ flex: 1 }} onDrop={onDrop} onDragOver={(e) => e.preventDefault()}>
           {!loaded ? (

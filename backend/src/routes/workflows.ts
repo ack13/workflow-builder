@@ -41,7 +41,33 @@ router.post('/workflows/:id/publish', async (req, res) => {
 // Manually fire a workflow for testing, or wire this up behind real
 // triggers (form submission webhook, cron for "fee overdue", etc).
 router.post('/workflows/:id/run', async (req, res) => {
-  const { entityType, entityId, context } = req.body;
-  const execution = await engine.start(req.params.id, entityType, entityId, context ?? {});
-  res.status(201).json(execution);
+  try {
+    const { entityType, entityId, context } = req.body;
+    if (typeof entityType !== 'string' || !entityType.trim()) {
+      return res.status(400).json({ error: 'Enter an entity type before running the workflow.' });
+    }
+    if (typeof entityId !== 'string' || !entityId.trim()) {
+      return res.status(400).json({ error: 'Enter an entity ID before running the workflow.' });
+    }
+    if (context !== undefined && (context === null || Array.isArray(context) || typeof context !== 'object')) {
+      return res.status(400).json({ error: 'Test context must be a JSON object.' });
+    }
+
+    const execution = await engine.start(req.params.id, entityType.trim(), entityId.trim(), context ?? {});
+    return res.status(201).json(execution);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to run workflow.';
+    const status = message.includes('not found') ? 404 : 400;
+    return res.status(status).json({ error: message });
+  }
+});
+
+router.get('/executions/:id', async (req, res) => {
+  try {
+    const execution = await store.getExecution(req.params.id);
+    return res.json(execution);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Execution not found.';
+    return res.status(404).json({ error: message });
+  }
 });

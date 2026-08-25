@@ -5,7 +5,10 @@ async function request(path, options) {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
-  if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error || `Request failed (${res.status}).`);
+  }
   return res.json();
 }
 
@@ -18,4 +21,5 @@ export const api = {
   publish: (id) => request(`/workflows/${id}/publish`, { method: 'POST' }),
   run: (id, entityType, entityId, context) =>
     request(`/workflows/${id}/run`, { method: 'POST', body: JSON.stringify({ entityType, entityId, context }) }),
+  getExecution: (id) => request(`/executions/${id}`),
 };
